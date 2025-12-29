@@ -5,27 +5,41 @@
 <title>Celebrity Recognition</title>
 
 <style>
-/* ---------- RESET / BASE ---------- */
+/* ---------- RESET ---------- */
 * { box-sizing: border-box; }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
-  background: linear-gradient(180deg, #f6f7fb, #eef0f6);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* ---------- COLORS ---------- */
+:root {
+  --bg-start: #eef1ff;
+  --bg-end: #f9faff;
+  --primary: #5a67ff;
+  --primary-dark: #4a57e8;
+  --secondary: #eef0f7;
+  --success: #1fa971;
+  --error: #d64545;
+  --text-main: #222;
+  --text-muted: #666;
 }
 
-/* ---------- LAYOUT ---------- */
+/* ---------- PAGE ---------- */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- CARD ---------- */
 .app {
   width: 100%;
-  max-width: 520px;
+  max-width: 560px;
   background: white;
-  border-radius: 16px;
-  padding: 24px 20px 28px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  border-radius: 22px;
+  padding: 28px 24px 32px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.12);
   text-align: center;
 }
 
@@ -33,37 +47,47 @@ body {
 
 /* ---------- TYPOGRAPHY ---------- */
 h1 {
-  font-size: 26px;
-  margin: 8px 0 12px;
+  font-size: 30px;
+  margin: 6px 0 10px;
+  color: var(--text-main);
 }
 
 h2 {
-  font-size: 22px;
-  margin-bottom: 8px;
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 p {
-  color: #444;
-  line-height: 1.4;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.45;
 }
 
 .small {
-  font-size: 13px;
-  color: #777;
-  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ---------- PROGRESS ---------- */
+#progress {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 10px;
 }
 
 /* ---------- IMAGE ---------- */
 .image-wrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #f2f3f7;
-  border-radius: 14px;
+  border-radius: 18px;
+  background: #f3f4fa;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  margin: 16px 0;
+  margin: 18px 0;
 }
 
 .image-wrapper img {
@@ -75,59 +99,72 @@ p {
 /* ---------- INPUT ---------- */
 input {
   width: 100%;
-  padding: 14px 16px;
-  font-size: 17px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
+  padding: 16px 18px;
+  font-size: 18px;
+  border-radius: 14px;
+  border: 2px solid #e2e5f1;
   outline: none;
   margin-top: 8px;
+  transition: border-color 0.15s;
 }
 
 input:focus {
-  border-color: #6c7cff;
+  border-color: var(--primary);
 }
 
 /* ---------- BUTTONS ---------- */
 .buttons {
   display: flex;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 button {
   flex: 1;
-  padding: 14px 0;
-  font-size: 16px;
+  padding: 16px 0;
+  font-size: 17px;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 .primary {
-  background: #6c7cff;
+  background: var(--primary);
   color: white;
 }
 
-.primary:hover { background: #5b6af5; }
+.primary:hover {
+  background: var(--primary-dark);
+}
 
 .secondary {
-  background: #eceef4;
+  background: var(--secondary);
   color: #333;
 }
 
-.secondary:hover { background: #e0e3ee; }
+.secondary:hover {
+  background: #e3e6f2;
+}
 
 /* ---------- FEEDBACK ---------- */
 #feedback {
-  margin-top: 12px;
+  margin-top: 14px;
+  font-size: 17px;
   font-weight: 600;
 }
 
-#progress {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 6px;
+.correct {
+  color: var(--success);
+}
+
+.incorrect {
+  color: var(--error);
 }
 </style>
 </head>
@@ -136,15 +173,15 @@ button {
 
 <div class="app">
 
-  <!-- START SCREEN -->
+  <!-- START -->
   <div id="startScreen">
     <h1>Recognize the Celebrity</h1>
     <p>You’ll see 20 faces. How many can you name?</p>
     <button class="primary" onclick="startRound()">Start round</button>
-    <p class="small">Exact spelling. One attempt per face.</p>
+    <p class="small">Exact spelling · One attempt per face</p>
   </div>
 
-  <!-- GAME SCREEN -->
+  <!-- GAME -->
   <div id="gameScreen" class="hidden">
     <div id="progress"></div>
 
@@ -164,7 +201,7 @@ button {
     <p id="feedback"></p>
   </div>
 
-  <!-- END SCREEN -->
+  <!-- END -->
   <div id="endScreen" class="hidden">
     <h2 id="headline"></h2>
     <p id="finalScore"></p>
@@ -185,15 +222,11 @@ fetch(CSV_URL).then(r => r.text()).then(t => all = parseCSV(t));
 function parseCSV(csv) {
   const rows = [], cur = [];
   let val = "", q = false;
-
   for (let c of csv) {
     if (c === '"') q = !q;
     else if (c === ',' && !q) { cur.push(val); val = ""; }
     else if ((c === '\n' || c === '\r') && !q) {
-      if (val || cur.length) {
-        cur.push(val); rows.push([...cur]);
-        cur.length = 0; val = "";
-      }
+      if (val || cur.length) { cur.push(val); rows.push([...cur]); cur.length = 0; val = ""; }
     } else val += c;
   }
   if (val || cur.length) { cur.push(val); rows.push(cur); }
@@ -206,18 +239,18 @@ function parseCSV(csv) {
   }).filter(x => x.name);
 }
 
+const pick = (a,n) => [...a].sort(()=>Math.random()-0.5).slice(0,n);
+
 function buildRound() {
-  const a = all.filter(x => x.conf === 5);
-  const t = all.filter(x => x.conf === 4);
-  const p = all.filter(x => x.conf <= 3);
-  return [...pick(a,6), ...pick(t,8), ...pick(p,6)].sort(() => Math.random() - 0.5);
+  return [
+    ...pick(all.filter(x=>x.conf===5),6),
+    ...pick(all.filter(x=>x.conf===4),8),
+    ...pick(all.filter(x=>x.conf<=3),6)
+  ].sort(()=>Math.random()-0.5);
 }
 
-const pick = (arr, n) => [...arr].sort(() => Math.random() - 0.5).slice(0, n);
-
 function startRound() {
-  round = buildRound();
-  idx = 0; score = 0;
+  round = buildRound(); idx = 0; score = 0;
   startScreen.classList.add("hidden");
   endScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
@@ -225,29 +258,26 @@ function startRound() {
 }
 
 function showFace() {
-  progress.innerText = `Face ${idx + 1} of ${TOTAL} • Score ${score}`;
+  progress.innerText = `Face ${idx+1} of ${TOTAL} • Score ${score}`;
   guessInput.value = "";
   feedback.innerText = "";
+  feedback.className = "";
   loadImage(round[idx].name);
 }
 
 function loadImage(name) {
   imageStatus.innerText = "Loading image…";
-  if (cache[name]) {
-    celebrityImage.src = cache[name];
-    imageStatus.innerText = "";
-    return;
-  }
+  if (cache[name]) { celebrityImage.src = cache[name]; imageStatus.innerText = ""; return; }
   fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`)
-    .then(r => r.json())
-    .then(d => {
+    .then(r=>r.json())
+    .then(d=>{
       if (d.thumbnail?.source) {
-        cache[name] = d.thumbnail.source;
-        celebrityImage.src = d.thumbnail.source;
-        imageStatus.innerText = "";
+        cache[name]=d.thumbnail.source;
+        celebrityImage.src=d.thumbnail.source;
+        imageStatus.innerText="";
       } else {
-        celebrityImage.src = "";
-        imageStatus.innerText = "Image not available";
+        celebrityImage.src="";
+        imageStatus.innerText="Image not available";
       }
     });
 }
@@ -255,13 +285,21 @@ function loadImage(name) {
 function submitGuess() {
   const g = guessInput.value.trim().toLowerCase();
   const c = round[idx].name.toLowerCase();
-  feedback.innerText = g === c ? (score += 10, "Correct! +10 points") : `Incorrect. Correct answer: ${round[idx].name}`;
-  setTimeout(nextFace, 1200);
+  if (g === c) {
+    score += 10;
+    feedback.innerText = "Correct! +10 points";
+    feedback.className = "correct";
+  } else {
+    feedback.innerText = `Incorrect. Correct answer: ${round[idx].name}`;
+    feedback.className = "incorrect";
+  }
+  setTimeout(nextFace,1200);
 }
 
 function skip() {
   feedback.innerText = `Incorrect. Correct answer: ${round[idx].name}`;
-  setTimeout(nextFace, 1200);
+  feedback.className = "incorrect";
+  setTimeout(nextFace,1200);
 }
 
 function nextFace() {
@@ -272,7 +310,7 @@ function nextFace() {
 function endRound() {
   gameScreen.classList.add("hidden");
   endScreen.classList.remove("hidden");
-  finalScore.innerText = `Your score: ${score} / ${TOTAL * 10}`;
+  finalScore.innerText = `Your score: ${score} / ${TOTAL*10}`;
   headline.innerText =
     score >= 160 ? "You really know your pop culture." :
     score >= 120 ? "Solid — but you left points on the table." :
