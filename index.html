@@ -191,6 +191,25 @@ button {
   letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
+
+.site-footer {
+  position: fixed;
+  bottom: 12px;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+}
+
+.site-footer a {
+  color: #777;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
 </style>
 </head>
 
@@ -240,12 +259,12 @@ button {
     <button class="primary" onclick="startRound()">Play again</button>
   </div>
   
-  <p class="small">
-    <a href="/privacy.html">Privacy Policy</a>
-  </p>
-  
 </div>
 
+<footer class="site-footer">
+  <a href="/privacy.html">Privacy Policy</a>
+</footer>
+  
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS52keBl1q6F8AVumY7iwghhuYyxm5n9XJdyHFVlBIdWTp4hN-IPvwseIo5cjJO_iUzJp7H6EQMIT6E/pub?output=csv";
 const TOTAL = 20;
@@ -362,4 +381,5 @@ function endRound() {
 
 </body>
 </html>
+
 
