@@ -35,29 +35,16 @@
 </head>
 <body>
 
-<!-- START SCREEN -->
 <div id="startScreen">
   <h1>Recognize the Celebrity</h1>
   <p>You’ll see 20 faces. Name as many celebrities as you can.</p>
-
-  <ul style="text-align:left; max-width:420px; margin: 0 auto;">
-    <li>One attempt per face</li>
-    <li>Exact spelling required</li>
-    <li>You can skip any face</li>
-    <li>Each correct answer is 10 points</li>
-    <li>The round ends after 20 faces</li>
-  </ul>
-
-  <p class="small">Some will be easy. Some will be tough. That’s the point.</p>
-
   <button onclick="startRound()">Start round</button>
 </div>
 
-<!-- GAME SCREEN -->
 <div id="gameScreen" style="display:none;">
   <div id="progress"></div>
-  <img id="celebrityImage" src="">
-  <br>
+  <img id="celebrityImage">
+  <p id="imageStatus" class="small"></p>
   <input id="guessInput" placeholder="Who is this?" autocomplete="off">
   <br>
   <button onclick="submitGuess()">Submit</button>
@@ -65,7 +52,6 @@
   <p id="feedback"></p>
 </div>
 
-<!-- END SCREEN -->
 <div id="endScreen" style="display:none;">
   <h2 id="headline"></h2>
   <p id="finalScore"></p>
@@ -73,56 +59,58 @@
 </div>
 
 <script>
-/* ===============================
-   CONFIG
-   =============================== */
-
 const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vS52keBl1q6F8AVumY7iwghhuYyxm5n9XJdyHFVlBIdWTp4hN-IPvwseIo5cjJO_iUzJp7H6EQMIT6E/pub?output=csv";
 
 const FACES_PER_ROUND = 20;
-
-/* ===============================
-   STATE
-   =============================== */
-
 let allCelebrities = [];
 let round = [];
 let index = 0;
 let score = 0;
+const imageCache = {};
 
-/* ===============================
-   CSV LOADING
-   =============================== */
+// ---------- ROBUST CSV PARSER ----------
+function parseCSV(csv) {
+  const rows = [];
+  let row = [];
+  let value = "";
+  let inQuotes = false;
 
+  for (let char of csv) {
+    if (char === '"') inQuotes = !inQuotes;
+    else if (char === "," && !inQuotes) {
+      row.push(value);
+      value = "";
+    } else if (char === "\n" && !inQuotes) {
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = "";
+    } else value += char;
+  }
+  row.push(value);
+  rows.push(row);
+
+  const headers = rows.shift().map(h => h.trim());
+
+  return rows.map(r => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+    return {
+      name: obj.full_name,
+      confidence: Number(obj.confidence_level)
+    };
+  }).filter(c => c.name);
+}
+
+// ---------- LOAD DATA ----------
 fetch(CSV_URL)
   .then(res => res.text())
   .then(csv => {
     allCelebrities = parseCSV(csv);
   });
 
-function parseCSV(csv) {
-  const lines = csv.split("\n");
-  const headers = lines[0].split(",").map(h => h.trim());
-
-  return lines.slice(1).map(line => {
-    const values = line.split(",");
-    let obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = (values[i] || "").trim();
-    });
-    return {
-      name: obj.full_name,
-      image: obj.image_url,
-      confidence: Number(obj.confidence_level)
-    };
-  }).filter(c => c.name && c.image);
-}
-
-/* ===============================
-   ROUND COMPOSITION
-   =============================== */
-
+// ---------- ROUND BUILD ----------
 function buildRound() {
   const anchors = allCelebrities.filter(c => c.confidence === 5);
   const traps = allCelebrities.filter(c => c.confidence === 4);
@@ -139,45 +127,62 @@ function pickRandom(arr, n) {
   return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
 }
 
-/* ===============================
-   GAME FLOW
-   =============================== */
-
+// ---------- GAME FLOW ----------
 function startRound() {
   score = 0;
   index = 0;
   round = buildRound();
 
-  document.getElementById("startScreen").style.display = "none";
-  document.getElementById("endScreen").style.display = "none";
-  document.getElementById("gameScreen").style.display = "block";
+  startScreen.style.display = "none";
+  endScreen.style.display = "none";
+  gameScreen.style.display = "block";
 
   showFace();
 }
 
 function showFace() {
-  document.getElementById("progress").innerText =
-    `Face ${index + 1} of ${FACES_PER_ROUND} | Score: ${score}`;
+  progress.innerText = `Face ${index + 1} of ${FACES_PER_ROUND} | Score: ${score}`;
+  guessInput.value = "";
+  feedback.innerText = "";
+  loadWikipediaImage(round[index].name);
+}
 
-  document.getElementById("celebrityImage").src = round[index].image;
-  document.getElementById("guessInput").value = "";
-  document.getElementById("guessInput").disabled = false;
-  document.getElementById("feedback").innerText = "";
+function loadWikipediaImage(name) {
+  imageStatus.innerText = "Loading image…";
+
+  if (imageCache[name]) {
+    celebrityImage.src = imageCache[name];
+    imageStatus.innerText = "";
+    return;
+  }
+
+  fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.thumbnail?.source) {
+        imageCache[name] = data.thumbnail.source;
+        celebrityImage.src = data.thumbnail.source;
+        imageStatus.innerText = "";
+      } else {
+        imageStatus.innerText = "Image not available";
+        celebrityImage.src = "";
+      }
+    })
+    .catch(() => {
+      imageStatus.innerText = "Image not available";
+      celebrityImage.src = "";
+    });
 }
 
 function submitGuess() {
-  const input = document.getElementById("guessInput");
-  const guess = input.value.trim().toLowerCase();
+  const guess = guessInput.value.trim().toLowerCase();
   const correct = round[index].name.toLowerCase();
-
-  input.disabled = true;
 
   if (guess === correct) {
     score += 10;
-    document.getElementById("feedback").innerText = "Correct! +10 points";
+    feedback.innerText = "Correct! +10 points";
   } else {
-    document.getElementById("feedback").innerText =
-      `Incorrect. Correct answer: ${round[index].name}`;
+    feedback.innerText = `Incorrect. Correct answer: ${round[index].name}`;
   }
 
   setTimeout(nextFace, 1200);
@@ -189,27 +194,20 @@ function skip() {
 
 function nextFace() {
   index++;
-  if (index < FACES_PER_ROUND) {
-    showFace();
-  } else {
-    endRound();
-  }
+  if (index < FACES_PER_ROUND) showFace();
+  else endRound();
 }
 
 function endRound() {
-  document.getElementById("gameScreen").style.display = "none";
-  document.getElementById("endScreen").style.display = "block";
+  gameScreen.style.display = "none";
+  endScreen.style.display = "block";
+  finalScore.innerText = `Your score: ${score} / ${FACES_PER_ROUND * 10}`;
 
-  document.getElementById("finalScore").innerText =
-    `Your score: ${score} / ${FACES_PER_ROUND * 10}`;
-
-  let headline = "That was tougher than it looked.";
-  if (score >= 160) headline = "You really know your pop culture.";
-  else if (score >= 120) headline = "Solid — but you left points on the table.";
-  else if (score >= 80) headline = "You know the faces. The names are harder.";
-  else if (score <= 30) headline = "Brutal round. Want another shot?";
-
-  document.getElementById("headline").innerText = headline;
+  headline.innerText =
+    score >= 160 ? "You really know your pop culture." :
+    score >= 120 ? "Solid — but you left points on the table." :
+    score >= 80 ? "You know the faces. The names are harder." :
+    "Brutal round. Want another shot?";
 }
 </script>
 
