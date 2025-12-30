@@ -62,82 +62,27 @@ function showFace() {
   guessInput.value = "";
   feedback.innerText = "";
   feedback.className = "";
-
-  // 🔒 HARD SAFETY: never allow a face to block the game
-  setTimeout(() => {
-    if (!celebrityImage.src || celebrityImage.naturalWidth === 0) {
-      nextFace();
-    }
-  }, 5000);
-  
   loadImage(round[idx].name);
 }
 
 function loadImage(name) {
   imageStatus.innerText = "Loading image…";
-  celebrityImage.src = "";
-
-  let finished = false;
-
-  const failAndSkip = (message) => {
-    if (finished) return;
-    finished = true;
-    imageStatus.innerText = message;
-    setTimeout(nextFace, 800);
-  };
-
-  const timeout = setTimeout(() => {
-    failAndSkip("Image failed to load. Skipping…");
-  }, 4000);
-
-  const useImage = (url) => {
-    const img = new Image();
-
-    img.onload = () => {
-      if (finished) return;
-
-      celebrityImage.src = url;
-
-      // 🔒 FINAL SAFETY CHECK (critical)
-      setTimeout(() => {
-        if (finished) return;
-
-        if (celebrityImage.naturalWidth === 0) {
-          failAndSkip("Image failed to render. Skipping…");
-        } else {
-          finished = true;
-          clearTimeout(timeout);
-          imageStatus.innerText = "";
-        }
-      }, 50);
-    };
-
-    img.onerror = () => {
-      failAndSkip("Image failed to load. Skipping…");
-    };
-
-    img.src = url;
-  };
-
   if (cache[name]) {
-    useImage(cache[name]);
+    celebrityImage.src = cache[name];
+    imageStatus.innerText = "";
     return;
   }
-
   fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`)
-    .then(r => r.json())
-    .then(d => {
-      if (finished) return;
-
-      if (d.thumbnail && d.thumbnail.source) {
-        cache[name] = d.thumbnail.source;
-        useImage(d.thumbnail.source);
+    .then(r=>r.json())
+    .then(d=>{
+      if (d.thumbnail?.source) {
+        cache[name]=d.thumbnail.source;
+        celebrityImage.src=d.thumbnail.source;
+        imageStatus.innerText="";
       } else {
-        failAndSkip("Image not available. Skipping…");
+        celebrityImage.src="";
+        imageStatus.innerText="Image not available";
       }
-    })
-    .catch(() => {
-      failAndSkip("Error loading image. Skipping…");
     });
 }
 
