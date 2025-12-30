@@ -68,67 +68,59 @@ function showFace() {
 function loadImage(name) {
   imageStatus.innerText = "Loading image…";
   celebrityImage.src = "";
-  
-  let didFinish = false;
+
+  let finished = false;
+
+  const failAndSkip = (message) => {
+    if (finished) return;
+    finished = true;
+    imageStatus.innerText = message;
+    setTimeout(nextFace, 800);
+  };
 
   const timeout = setTimeout(() => {
-    if (didFinish) return;
-    didFinish = true;
-    imageStatus.innerText = "Image failed to load. Skipping…";
-    setTimeout(nextFace, 800);
+    failAndSkip("Image failed to load. Skipping…");
   }, 4000);
 
+  const useImage = (url) => {
+    const img = new Image();
+
+    img.onload = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeout);
+      celebrityImage.src = url;
+      imageStatus.innerText = "";
+    };
+
+    img.onerror = () => {
+      failAndSkip("Image failed to load. Skipping…");
+    };
+
+    img.src = url;
+  };
+
   if (cache[name]) {
-    celebrityImage.src = cache[name];
-    imageStatus.innerText = "";
-    clearTimeout(timeout);
+    useImage(cache[name]);
     return;
   }
 
   fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`)
     .then(r => r.json())
     .then(d => {
-      if (didFinish) return;
+      if (finished) return;
 
       if (d.thumbnail && d.thumbnail.source) {
-        const img = new Image();
-
-        img.onload = () => {
-          if (didFinish) return;
-          didFinish = true;
-          clearTimeout(timeout);
-
-          cache[name] = d.thumbnail.source;
-          celebrityImage.src = d.thumbnail.source;
-          imageStatus.innerText = "";
-        };
-
-        img.onerror = () => {
-          if (didFinish) return;
-          didFinish = true;
-          clearTimeout(timeout);
-
-          imageStatus.innerText = "Image failed to load. Skipping…";
-          setTimeout(nextFace, 800);
-        };
-
-        img.src = d.thumbnail.source;
+        cache[name] = d.thumbnail.source;
+        useImage(d.thumbnail.source);
       } else {
-        didFinish = true;
-        clearTimeout(timeout);
-        imageStatus.innerText = "Image not available. Skipping…";
-        setTimeout(nextFace, 800);
+        failAndSkip("Image not available. Skipping…");
       }
     })
     .catch(() => {
-      if (didFinish) return;
-      didFinish = true;
-      clearTimeout(timeout);
-      imageStatus.innerText = "Error loading image. Skipping…";
-      setTimeout(nextFace, 800);
+      failAndSkip("Error loading image. Skipping…");
     });
 }
-
 
 function submitGuess() {
   const guess = guessInput.value;
