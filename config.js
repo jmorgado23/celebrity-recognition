@@ -18,9 +18,9 @@ window.CONFIG = {
   shareUrl: "https://celebrityrecognitiongame.com",
 
   endMessages: [
-    { min: 160, text: "You really know your pop culture." },
-    { min: 120, text: "Solid — but you left points on the table." },
-    { min: 80,  text: "You know the faces. The names are harder." },
+    { min: 16, text: "You really know your pop culture." },
+    { min: 12, text: "Solid — but you left points on the table." },
+    { min: 8,  text: "You know the faces. The names are harder." },
     { min: 0,   text: "Brutal round. Want another shot?" }
   ],
   
