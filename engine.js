@@ -90,7 +90,7 @@ function submitGuess() {
   const normalizedCorrect = normalizeString(correctName);
   
   if (isCloseEnough(guess, correctName)) {
-    score += 10;
+    score += 1;
   
     feedback.innerHTML = `Correct!<br><span class="small">${correctName}</span>`;
     feedback.className = "correct";
