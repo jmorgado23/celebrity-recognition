@@ -106,7 +106,8 @@ function submitGuess() {
 }
 
 function skip() {
-  feedback.innerText = `Incorrect. Correct answer: ${round[idx].name}`;
+  const correctName = round[idx].name;
+  feedback.innerHTML = `Incorrect!<br><span class="small">${correctName}</span>`;
   feedback.className = "incorrect";
   gtag('event','skip_face');
   setTimeout(nextFace,1200);
